@@ -30,6 +30,8 @@ function handleFormSubmit(e) {
         myPayment: parseFloat(document.getElementById('myPayment').value) || 0,
         assignedTo: document.getElementById('assignedTo').value.trim() || 'غير محدد',
         assignedPayment: parseFloat(document.getElementById('assignedPayment').value) || 0,
+        isDelivered: false,
+        isPaid: false,
         createdAt: new Date().toISOString()
     };
 
@@ -88,6 +90,9 @@ function createProjectRow(project, index) {
     const tr = document.createElement('tr');
     const status = getProjectStatus(project.deadline);
 
+    const isDelivered = project.isDelivered || false;
+    const isPaid = project.isPaid || false;
+    
     tr.innerHTML = `
         <td><strong>${escapeHtml(project.name)}</strong></td>
         <td>${formatDate(project.startDate)}</td>
@@ -95,6 +100,24 @@ function createProjectRow(project, index) {
         <td><strong>${formatCurrency(project.myPayment)}</strong></td>
         <td>${escapeHtml(project.assignedTo)}</td>
         <td>${formatCurrency(project.assignedPayment)}</td>
+        <td class="checkbox-cell">
+            <label class="table-checkbox-label">
+                <input type="checkbox" ${isDelivered ? 'checked' : ''} 
+                       onchange="toggleDelivered(${index}, this.checked)">
+                <span class="checkbox-text ${isDelivered ? 'checked' : ''}">
+                    ${isDelivered ? '✅ تم' : '❌ لم يتم'}
+                </span>
+            </label>
+        </td>
+        <td class="checkbox-cell">
+            <label class="table-checkbox-label">
+                <input type="checkbox" ${isPaid ? 'checked' : ''} 
+                       onchange="togglePaid(${index}, this.checked)">
+                <span class="checkbox-text ${isPaid ? 'checked' : ''}">
+                    ${isPaid ? '✅ تم' : '❌ لم يتم'}
+                </span>
+            </label>
+        </td>
         <td><span class="status-badge status-${status.class}">${status.text}</span></td>
         <td class="actions-cell">
             <button class="btn btn-edit" onclick="editProject(${index})">تعديل</button>
@@ -198,4 +221,22 @@ function handleSearch(e) {
 
     renderProjects(filtered);
 }
+
+// تبديل حالة التسليم
+function toggleDelivered(index, checked) {
+    projects[index].isDelivered = checked;
+    saveProjects();
+    renderProjects();
+}
+
+// تبديل حالة استلام الفلوس
+function togglePaid(index, checked) {
+    projects[index].isPaid = checked;
+    saveProjects();
+    renderProjects();
+}
+
+// جعل الدوال متاحة بشكل عام
+window.toggleDelivered = toggleDelivered;
+window.togglePaid = togglePaid;
 
