@@ -323,6 +323,11 @@ tbody td {
     color: #ef5350;
 }
 
+.status-delivered {
+    background: #1b5e20;
+    color: #81c784;
+}
+
 .empty-state {
     text-align: center;
     padding: 80px 20px;

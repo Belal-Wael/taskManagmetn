@@ -88,10 +88,9 @@ function renderProjects(filteredProjects = null) {
 // إنشاء صف في الجدول
 function createProjectRow(project, index) {
     const tr = document.createElement('tr');
-    const status = getProjectStatus(project.deadline);
-
     const isDelivered = project.isDelivered || false;
     const isPaid = project.isPaid || false;
+    const status = getProjectStatus(project.deadline, isDelivered);
     
     tr.innerHTML = `
         <td><strong>${escapeHtml(project.name)}</strong></td>
@@ -129,7 +128,12 @@ function createProjectRow(project, index) {
 }
 
 // تحديد حالة المشروع
-function getProjectStatus(deadline) {
+function getProjectStatus(deadline, isDelivered) {
+    // إذا تم التسليم، الحالة دائماً "تم"
+    if (isDelivered) {
+        return { class: 'delivered', text: 'تم' };
+    }
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const deadlineDate = new Date(deadline);
