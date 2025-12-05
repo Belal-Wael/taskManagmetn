@@ -240,7 +240,81 @@ function togglePaid(index, checked) {
     renderProjects();
 }
 
+// تصدير البيانات إلى Excel (CSV)
+function exportToExcel() {
+    if (projects.length === 0) {
+        alert('لا توجد مشاريع للتصدير');
+        return;
+    }
+
+    // رؤوس الأعمدة (بدون مبلغ المنفذ)
+    const headers = [
+        'اسم المشروع',
+        'تاريخ الاستلام',
+        'الديدلاين',
+        'مبلغ الاستلام',
+        'المسؤول',
+        'تم التسليم',
+        'تم استلام الفلوس',
+        'الحالة'
+    ];
+
+    // تحويل البيانات إلى صفوف CSV
+    const rows = projects.map(project => {
+        const isDelivered = project.isDelivered || false;
+        const isPaid = project.isPaid || false;
+        const status = getProjectStatus(project.deadline, isDelivered);
+
+        return [
+            escapeCSV(project.name),
+            formatDate(project.startDate),
+            formatDate(project.deadline),
+            formatCurrency(project.myPayment),
+            escapeCSV(project.assignedTo),
+            isDelivered ? 'تم' : 'لم يتم',
+            isPaid ? 'تم' : 'لم يتم',
+            status.text
+        ];
+    });
+
+    // إنشاء محتوى CSV
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // إضافة BOM للدعم الكامل للعربية في Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // إنشاء رابط التحميل
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    
+    // اسم الملف مع التاريخ
+    const date = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `مشاريع_${date}.csv`);
+    
+    // تحميل الملف
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// الهروب من الأحرف الخاصة في CSV
+function escapeCSV(text) {
+    if (!text) return '';
+    // إذا كان النص يحتوي على فاصلة أو علامات اقتباس أو سطر جديد
+    if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+        return `"${text.replace(/"/g, '""')}"`;
+    }
+    return text;
+}
+
 // جعل الدوال متاحة بشكل عام
 window.toggleDelivered = toggleDelivered;
 window.togglePaid = togglePaid;
+window.exportToExcel = exportToExcel;
 
